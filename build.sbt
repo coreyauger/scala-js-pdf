@@ -4,37 +4,55 @@ import sbt.Keys._
 
 sonatypeSettings
 
+name := "Type-safe and Scala-friendly library over Pdf.js"
+
+normalizedName := "scala-js-pdf"
+
+version := "0.0.1-SNAPSHOT"
+
+organization := "io.surfkit"
+
+scalaVersion := "2.11.8"
+
 lazy val root = project.in(file(".")).
   enablePlugins(ScalaJSPlugin)
+
+lazy val server = (project in file("server"))
+  .settings(serverSettings:_*)
 
 lazy val demo = (project in file("demo"))
   .settings(demoSettings:_*)
   .enablePlugins(ScalaJSPlugin)
   .dependsOn(root)
+  .aggregate(root)
+
+
+lazy val serverSettings = Seq(
+  name := s"server",
+  scalaVersion := "2.11.8",
+  libraryDependencies ++= {
+    val akkaV       = "2.4.4"
+    Seq(
+      "com.typesafe.akka" %% "akka-actor"                         % akkaV,
+      "com.typesafe.akka" %% "akka-stream"                        % akkaV,
+      "com.typesafe.akka" %% "akka-http-experimental"             % akkaV,
+      "com.typesafe.akka" %% "akka-http-spray-json-experimental"  % akkaV,
+      "com.typesafe.akka" %% "akka-http-testkit"                  % akkaV
+    )
+  }
+)
 
 
 lazy val demoSettings = Seq(
   name := s"pdf-demo",
-  scalaVersion := "2.11.6",
+  scalaVersion := "2.11.8",
   libraryDependencies ++= Seq(
-    "org.scala-js" %%% "scalajs-dom" % "0.8.2"
-  )
+      "org.scala-js" %%% "scalajs-dom" % "0.9.0"
+    )
 )
 
-name := "Type-safe and Scala-friendly library over Pdf.js"
-
-normalizedName := "scala-js-pdf"
-
-version := "0.1-SNAPSHOT"
-
-organization := "io.surfkit"
-
-scalaVersion := "2.11.6"
-
-crossScalaVersions := Seq("2.10.4", "2.11.5")
-
 libraryDependencies ++= Seq(
-  "org.scala-js" %%% "scalajs-dom" % "0.8.2"
+  "org.scala-js" %%% "scalajs-dom" % "0.9.0"
 )
 
 jsDependencies in Test += RuntimeDOM

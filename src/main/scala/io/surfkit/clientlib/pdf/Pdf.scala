@@ -1,23 +1,18 @@
 package io.surfkit.clientlib.pdf
+/*
+https://github.com/mozilla/pdf.js/blob/master/src/display/api.js
+ */
 
 import org.scalajs.dom.CanvasRenderingContext2D
 import org.scalajs.dom.raw.HTMLElement
 
 import scala.scalajs.js
+import scala.scalajs.js.Promise
 import scala.scalajs.js.annotation._
 import scala.scalajs.js.typedarray.Uint8Array
 
 package object pdflib extends js.GlobalScope {
   var PDFJS: PDFJSStatic = js.native
-}
-
-@js.native
-trait PDFPromise[T] extends js.Object {
-  def isResolved(): Boolean = js.native
-  def isRejected(): Boolean = js.native
-  def resolve(value: T): Unit = js.native
-  def reject(reason: String): Unit = js.native
-  def then(onResolve: js.Function1[T, Unit], onReject: js.Function1[String, Unit] = ???): PDFPromise[T] = js.native
 }
 
 @js.native
@@ -67,14 +62,14 @@ trait PDFDocumentProxy extends js.Object {
   var numPages: Double = js.native
   var fingerprint: String = js.native
   def embeddedFontsUsed(): Boolean = js.native
-  def getPage(number: Double): PDFPromise[PDFPageProxy] = js.native
-  def getDestinations(): PDFPromise[js.Array[js.Any]] = js.native
-  def getJavaScript(): PDFPromise[js.Array[String]] = js.native
-  def getOutline(): PDFPromise[js.Array[PDFTreeNode]] = js.native
-  def getMetadata(): PDFPromise[js.Any] = js.native
-  def isEncrypted(): PDFPromise[Boolean] = js.native
-  def getData(): PDFPromise[Uint8Array] = js.native
-  def dataLoaded(): PDFPromise[js.Array[js.Any]] = js.native
+  def getPage(number: Double): Promise[PDFPageProxy] = js.native
+  def getDestinations(): Promise[js.Array[js.Any]] = js.native
+  def getJavaScript(): Promise[js.Array[String]] = js.native
+  def getOutline(): Promise[js.Array[PDFTreeNode]] = js.native
+  def getMetadata(): Promise[js.Any] = js.native
+  def isEncrypted(): Promise[Boolean] = js.native
+  def getData(): Promise[Uint8Array] = js.native
+  def dataLoaded(): Promise[js.Array[js.Any]] = js.native
   def destroy(): Unit = js.native
 }
 
@@ -123,8 +118,8 @@ trait PDFAnnotations extends js.Object {
   def getHtmlElement(commonOjbs: js.Any): HTMLElement = js.native
   def getEmptyContainer(tagName: String, rect: js.Array[Double]): HTMLElement = js.native
   def isViewable(): Boolean = js.native
-  def loadResources(keys: js.Any): PDFPromise[js.Any] = js.native
-  def getOperatorList(evaluator: js.Any): PDFPromise[js.Any] = js.native
+  def loadResources(keys: js.Any): Promise[js.Any] = js.native
+  def getOperatorList(evaluator: js.Any): Promise[js.Any] = js.native
 }
 
 @js.native
@@ -149,14 +144,44 @@ trait PDFRenderParams extends js.Object {
   var continueCallback: js.Function1[js.Function0[Unit], Unit] = js.native
 }
 
+object PDFRenderParams {
+  def apply(
+             canvasContext:  js.UndefOr[CanvasRenderingContext2D] = js.undefined,
+             textLayer: js.UndefOr[PDFRenderTextLayer] = js.undefined,
+             viewport: js.UndefOr[PDFPageViewport] = js.undefined,
+             imageLayer: js.UndefOr[PDFRenderImageLayer] = js.undefined,
+             continueCallback: js.UndefOr[js.Function1[js.Function0[Unit], Unit]] = js.undefined
+           ): PDFRenderParams = {
+    val result = js.Dynamic.literal()
+    canvasContext.foreach(result.canvasContext = _)
+    textLayer.foreach(result.textLayer = _)
+    viewport.foreach(result.viewport = _)
+    imageLayer.foreach(result.imageLayer = _)
+    continueCallback.foreach(result.continueCallback = _)
+    result.asInstanceOf[PDFRenderParams]
+  }
+}
+
 @js.native
 trait PDFViewerParams extends js.Object {
   var container: HTMLElement = js.native
   var viewer: HTMLElement = js.native
 }
 
+object PDFViewerParams {
+  def apply(
+             container:  js.UndefOr[HTMLElement] = js.undefined,
+             viewer: js.UndefOr[HTMLElement] = js.undefined
+           ): PDFViewerParams = {
+    val result = js.Dynamic.literal()
+    container.foreach(result.container = _)
+    viewer.foreach(result.viewer = _)
+    result.asInstanceOf[PDFViewerParams]
+  }
+}
+
 @js.native
-trait PDFRenderTask extends PDFPromise[PDFPageProxy] {
+trait PDFRenderTask extends Promise[PDFPageProxy] {
   def cancel(): Unit = js.native
 }
 
@@ -167,9 +192,9 @@ trait PDFPageProxy extends js.Object {
   def ref(): PDFRef = js.native
   def view(): js.Array[Double] = js.native
   def getViewport(scale: Double, rotate: Double = ???): PDFPageViewport = js.native
-  def getAnnotations(): PDFPromise[PDFAnnotations] = js.native
+  def getAnnotations(): Promise[PDFAnnotations] = js.native
   def render(params: PDFRenderParams): PDFRenderTask = js.native
-  def getTextContent(): PDFPromise[TextContent] = js.native
+  def getTextContent(): Promise[TextContent] = js.native
   def destroy(): Unit = js.native
 }
 
@@ -201,8 +226,13 @@ trait PDFObjects extends js.Object {
 
 @js.native
 trait PDFJSStatic extends js.Object {
+  var workerSrc: String = js.native
+  var disableWorker: Boolean = js.native
   var maxImageSize: Double = js.native
   var disableFontFace: Boolean = js.native
-  def getDocument(source: String, pdfDataRangeTransport: js.Any = ???, passwordCallback: js.Function2[js.Function1[String, Unit], String, String] = ???, progressCallback: js.Function1[PDFProgressData, Unit] = ???): PDFPromise[PDFDocumentProxy] = js.native
+  def getDocument(source: String,
+                  pdfDataRangeTransport: js.Any = ???,
+                  passwordCallback: js.Function2[js.Function1[String, Unit], String, String] = ???,
+                  progressCallback: js.Function1[PDFProgressData, Unit] = ???): Promise[PDFDocumentProxy] = js.native
   def PDFViewer(params: PDFViewerParams): Unit = js.native
 }
